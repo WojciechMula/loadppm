@@ -1,7 +1,7 @@
 /*
-	$Date: 2007-06-29 23:37:54 $, $Revision: 1.2 $
+	$Date: 2007-06-30 00:06:34 $, $Revision: 1.3 $
 	
-	Simple PPM files loader/identify.
+	Simple PPM files (24bpp) loader/identify.
 	
 	Author: Wojciech Mu³a
 	e-mail: wojciech_mula@poczta.onet.pl
