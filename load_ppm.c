@@ -1,5 +1,5 @@
 /*
-	$Date: 2007-06-30 00:06:34 $, $Revision: 1.3 $
+	$Date: 2007-07-01 23:22:58 $, $Revision: 1.4 $
 	
 	Simple PPM files (24bpp) loader/identify.
 	
@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 char __ppm_read_int(FILE* f, int* v) {
 	int value = 0;	// readed value
@@ -67,7 +68,7 @@ char __ppm_skip_comment(FILE* f) {
 		return 1;
 }
 
-char* PPM_errmsg[] = {
+char* PPM_errormsg[] = {
 	/* 0 */ "no error",
 	/* 1 */ "wrong signature",
 	/* 2 */ "image width absent",
@@ -77,6 +78,8 @@ char* PPM_errmsg[] = {
 	/* 6 */ "maxval larger then 65535",
 	/* 7 */ "no free memory for image pixels",
 	/* 8 */ "too few image pixels"
+	/* 9 */ "no free memory for tmp buffer",
+	/* 10 */ "can't convert, maxval > 255",
 };
 
 /*
@@ -96,9 +99,8 @@ char* PPM_errmsg[] = {
 	Returns:
 		status, 0 if succed, < 0 -- some error occured
 */
-int load_ppm(FILE* f, int* width, int* height, int* maxval, uint8_t** data) {
+int ppm_identify(FILE* f, int* width, int* height, int* maxval) {
 	int c;
-	int size;
 	
 	// check signature
 	if (fgetc(f) != 'P' || fgetc(f) != '6')
@@ -120,23 +122,167 @@ int load_ppm(FILE* f, int* width, int* height, int* maxval, uint8_t** data) {
 	if (!(c == '\n' || c == '\t' || c == '\r' || c == ' ')) return -5; 
 	if (*maxval > 65535) return -6;
 
-	// data is not NULL, try read image pixels
-	if (data) {
-		if (*maxval < 256)
-			size = *width * *height * 3;
-		else
-			size = *width * *height * 6;
-		
-		*data = (uint8_t*)malloc(size);
-		
-		if (!*data)
-			return -7;
-		else
-			if (!fread(*data, size, 1, f)) {
-				free(*data);
-				return -8;
-			}
+	return 0;
+}
+
+
+int ppm_bytes_per_line(int img_width, int bytes_per_pixel, int unit) {
+	int blocks;
+	// unit in pixels
+	if (unit < -1) { 
+		unit   = -unit;
+		blocks = (img_width + unit-1)/unit;
+		return blocks * unit * bytes_per_pixel;
 	}
+	else
+	// unit in bytes
+	if (unit > 1) { 
+		blocks = (img_width * bytes_per_pixel + unit-1)/unit;
+		return blocks * unit;
+	}
+	// no rounding
+	else
+		return img_width * bytes_per_pixel;
+}
+
+
+int ppm_load(FILE* file, int* width, int* height, int* maxval, uint8_t** data) {
+	int size, result;
+
+	result = ppm_identify(file, width, height, maxval);
+	if (result < 0)
+		return result;
+	
+	// data is NULL -- do nothing
+	if (data == NULL)
+		return 0;
+
+	if (*maxval < 256)
+		size = *width * 3;
+	else
+		size = *width * 6;
+		
+	*data = (uint8_t*)malloc(size);
+	if (!*data)
+		return -7;
+
+	if (fread((void*)*data, size, 1, file) < 1)
+		return -8;
+	else
+		return 0;
+}
+
+
+int ppm_load_32bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit) {
+	int size, result, y, x, bpl;
+	uint8_t* tmpbuffer;
+	uint8_t* dst;
+	uint8_t* src;
+	uint8_t  R, G, B;
+
+	result = ppm_identify(file, width, height, maxval);
+	if (result < 0)
+		return result;
+	
+	// data is NULL -- do nothing
+	if (data == NULL)
+		return 0;
+
+
+	if (*maxval < 256)
+		bpl = ppm_bytes_per_line(*width, 4, unit);
+	else
+		return -10;
+	
+	*data = (uint8_t*)malloc(*height * bpl);
+	if (!*data)
+		return -7;
+	
+	if (*maxval < 256)
+		size = *width * 3;
+	else
+		size = *width * 6;
+	
+	tmpbuffer = (uint8_t*)malloc(size);
+	if (!tmpbuffer)
+		return -9;
+	
+	// read
+	dst = *data;
+	for (y=0; y < *height; y++) {
+		src = tmpbuffer;
+		if (fread((void*)tmpbuffer, size, 1, file) < 1) {
+			free(tmpbuffer);
+			return -8;
+		}
+		for (x=0; x < *width; x++) {
+			R = *src++;
+			G = *src++;
+			B = *src++;
+			*dst++ = B;
+			*dst++ = G;
+			*dst++ = R;
+			*dst++ = 0x00;   // pad
+		}
+	}
+
+	free(tmpbuffer);
+	return 0;
+}
+
+
+int ppm_load_16bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit) {
+	int size, result, y, x, bpl;
+	uint8_t* tmpbuffer;
+	uint8_t* src;
+	uint8_t* dst;
+	uint16_t R, G, B;
+
+	result = ppm_identify(file, width, height, maxval);
+	if (result < 0)
+		return result;
+	
+	// data is NULL -- do nothing
+	if (data == NULL)
+		return 0;
+
+
+	if (*maxval < 256)
+		bpl = ppm_bytes_per_line(*width, 2, unit);
+	else
+		return -10;
+		
+	*data = (uint8_t*)malloc(*height * bpl);
+	if (!*data)
+		return -7;
+	
+	if (*maxval < 256)
+		size = *width * 3;
+	else
+		size = *width * 6;
+	
+	tmpbuffer = (uint8_t*)malloc(size);
+	if (!tmpbuffer)
+		return -9;
+	
+	// read
+	dst = *data;
+	for (y=0; y < *height; y++) {
+		src = tmpbuffer;
+		if (fread((void*)tmpbuffer, size, 1, file) < 1) {
+			free(tmpbuffer);
+			return -8;
+		}
+		for (x=0; x < *width; x++) {
+			R = *src++ >> 3;
+			G = *src++ >> 2;
+			B = *src++ >> 3;
+			*(uint16_t*)dst = (R << 11) | (G << 5) | B;
+			dst += 2;
+		}
+	}
+
+	free(tmpbuffer);
 	return 0;
 }
 
@@ -161,7 +307,7 @@ int main(int argc, char* argv[]) {
 			result = load_ppm(file, &width, &height, &maxval, &img);
 			if (result < 0)
 				fprintf(stderr, "Error loading file '%s': %s",
-				       argv[i], PPM_errmsg[-result]);
+				       argv[i], PPM_errormsg[-result]);
 			else {
 				printf("PPM file '%s' has dimensions %dx%d, image size %d bytes (%sbpp)\n",
 				       argv[i], width, height,
