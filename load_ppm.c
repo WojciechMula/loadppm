@@ -1,5 +1,5 @@
 /*
-	$Date: 2007-07-01 23:22:58 $, $Revision: 1.4 $
+	$Date: 2007-07-02 21:44:36 $, $Revision: 1.5 $
 	
 	Simple PPM files (24bpp) loader/identify.
 	
@@ -236,7 +236,7 @@ int ppm_load_16bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** d
 	uint8_t* tmpbuffer;
 	uint8_t* src;
 	uint8_t* dst;
-	uint16_t R, G, B;
+	uint16_t r, g, b;
 
 	result = ppm_identify(file, width, height, maxval);
 	if (result < 0)
@@ -274,11 +274,65 @@ int ppm_load_16bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** d
 			return -8;
 		}
 		for (x=0; x < *width; x++) {
-			R = *src++ >> 3;
-			G = *src++ >> 2;
-			B = *src++ >> 3;
-			*(uint16_t*)dst = (R << 11) | (G << 5) | B;
+			r = *src++ >> 3;
+			g = *src++ >> 2;
+			b = *src++ >> 3;
+			*(uint16_t*)dst = (r << 11) | (g << 5) | b;
 			dst += 2;
+		}
+	}
+
+	free(tmpbuffer);
+	return 0;
+}
+ 
+int ppm_load_gray(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit) {
+	int size, result, y, x, bpl;
+	uint8_t* tmpbuffer;
+	uint8_t* src;
+	uint8_t* dst;
+	uint16_t r, g, b;
+
+	result = ppm_identify(file, width, height, maxval);
+	if (result < 0)
+		return result;
+	
+	// data is NULL -- do nothing
+	if (data == NULL)
+		return 0;
+
+
+	if (*maxval < 256)
+		bpl = ppm_bytes_per_line(*width, 1, unit);
+	else
+		return -10;
+		
+	*data = (uint8_t*)malloc(*height * bpl);
+	if (!*data)
+		return -7;
+	
+	if (*maxval < 256)
+		size = *width * 3;
+	else
+		size = *width * 6;
+	
+	tmpbuffer = (uint8_t*)malloc(size);
+	if (!tmpbuffer)
+		return -9;
+	
+	// read
+	dst = *data;
+	for (y=0; y < *height; y++) {
+		src = tmpbuffer;
+		if (fread((void*)tmpbuffer, size, 1, file) < 1) {
+			free(tmpbuffer);
+			return -8;
+		}
+		for (x=0; x < *width; x++) {
+			r = *src++;
+			g = *src++;
+			b = *src++;
+			*dst++ = (r + g + b)/3;
 		}
 	}
 
