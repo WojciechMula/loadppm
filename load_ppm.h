@@ -1,7 +1,7 @@
 #ifndef __LOAD_PPM_H_INCLUDED__
 #define __LOAD_PPM_H_INCLUDED__
 /*
-	$Date: 2007-07-04 20:14:45 $, $Revision: 1.1 $
+	$Date: 2007-07-04 22:13:40 $, $Revision: 1.2 $
 	
 	Simple PPM files (24bpp) loader/identify [header].
 	
@@ -13,20 +13,6 @@
 */
 
 
-#define PPM_maxerror 11
-char* PPM_errormsg[PPM_maxerror] = {
-	/* 0 */ "no error",
-	/* 1 */ "wrong signature",
-	/* 2 */ "image width absent",
-	/* 3 */ "image height absent",
-	/* 4 */ "image maxval absent",
-	/* 5 */ "no single whitespace after maxval",
-	/* 6 */ "maxval larger then 65535",
-	/* 7 */ "no free memory for image pixels",
-	/* 8 */ "too few image pixels"
-	/* 9 */ "no free memory for tmp buffer",
-	/* 10 */ "can't convert, maxval > 255",
-};
 
 /*
 	identify PPM (i.e. 24bpp RGB).
@@ -99,6 +85,22 @@ int ppm_load_gray(
 	int unit, 
 	GrayScaleMode gsm
 );
+
+
+#define PPM_maxerror 11
+static char* PPM_errormsg[PPM_maxerror] = {
+	/* 0 */ "no error",
+	/* 1 */ "wrong signature",
+	/* 2 */ "image width absent",
+	/* 3 */ "image height absent",
+	/* 4 */ "image maxval absent",
+	/* 5 */ "no single whitespace after maxval",
+	/* 6 */ "maxval larger then 65535",
+	/* 7 */ "no free memory for image pixels",
+	/* 8 */ "too few image pixels"
+	/* 9 */ "no free memory for tmp buffer",
+	/* 10 */ "can't convert, maxval > 255",
+};
 
 #endif
 
