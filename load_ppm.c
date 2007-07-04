@@ -1,7 +1,7 @@
 /*
-	$Date: 2007-07-02 21:44:36 $, $Revision: 1.5 $
+	$Date: 2007-07-04 20:16:21 $, $Revision: 1.6 $
 	
-	Simple PPM files (24bpp) loader/identify.
+	Simple PPM files (24bpp) loader/identify [implementation].
 	
 	Author: Wojciech Mu³a
 	e-mail: wojciech_mula@poczta.onet.pl
@@ -15,7 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-char __ppm_read_int(FILE* f, int* v) {
+#include "load_ppm.h"
+
+static char __ppm_read_int(FILE* f, int* v) {
 	int value = 0;	// readed value
 	int c;			// buffer
 	char valid = 0;	// flag
@@ -37,7 +39,7 @@ char __ppm_read_int(FILE* f, int* v) {
 	return valid;
 }
 
-char __ppm_skip_whitespaces(FILE* f) {
+static char __ppm_skip_whitespaces(FILE* f) {
 	char skipped = 0;
 	int c;
 	while (1) {
@@ -52,7 +54,7 @@ char __ppm_skip_whitespaces(FILE* f) {
 	return skipped;
 }
 
-char __ppm_skip_comment(FILE* f) {
+static char __ppm_skip_comment(FILE* f) {
 	int c;
 	c = fgetc(f);
 	if (c != '#') {
@@ -68,37 +70,7 @@ char __ppm_skip_comment(FILE* f) {
 		return 1;
 }
 
-char* PPM_errormsg[] = {
-	/* 0 */ "no error",
-	/* 1 */ "wrong signature",
-	/* 2 */ "image width absent",
-	/* 3 */ "image height absent",
-	/* 4 */ "image maxval absent",
-	/* 5 */ "no single whitespace after maxval",
-	/* 6 */ "maxval larger then 65535",
-	/* 7 */ "no free memory for image pixels",
-	/* 8 */ "too few image pixels"
-	/* 9 */ "no free memory for tmp buffer",
-	/* 10 */ "can't convert, maxval > 255",
-};
 
-/*
-	Load/identify PPM (i.e. 24bpp RGB).
-
-	Input:
-		f      - file
-
-	Output:
-		width,
-		height - image dimensions
-		maxval - maximal value of sample (usually 255)
-		data   - pointer to image pixels (if NULL image pixels
-		         are not loaded, no memory is allocated)
-				 user have to free data
-
-	Returns:
-		status, 0 if succed, < 0 -- some error occured
-*/
 int ppm_identify(FILE* f, int* width, int* height, int* maxval) {
 	int c;
 	
@@ -224,6 +196,7 @@ int ppm_load_32bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** d
 			*dst++ = R;
 			*dst++ = 0x00;   // pad
 		}
+		dst += bpl - (*width * 3);
 	}
 
 	free(tmpbuffer);
@@ -280,13 +253,15 @@ int ppm_load_16bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** d
 			*(uint16_t*)dst = (r << 11) | (g << 5) | b;
 			dst += 2;
 		}
+		dst += bpl - (*width * 3);
 	}
 
 	free(tmpbuffer);
 	return 0;
 }
- 
-int ppm_load_gray(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit) {
+
+
+int ppm_load_gray(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit, GrayScaleMode gsm) {
 	int size, result, y, x, bpl;
 	uint8_t* tmpbuffer;
 	uint8_t* src;
@@ -328,17 +303,27 @@ int ppm_load_gray(FILE* file, int* width, int* height, int* maxval, uint8_t** da
 			free(tmpbuffer);
 			return -8;
 		}
-		for (x=0; x < *width; x++) {
-			r = *src++;
-			g = *src++;
-			b = *src++;
-			*dst++ = (r + g + b)/3;
-		}
+		if (gsm == Simple)
+			for (x=0; x < *width; x++) {
+				r = *src++;
+				g = *src++;
+				b = *src++;
+				*dst++ = (r + g + b)/3;
+			}
+		else
+			for (x=0; x < *width; x++) {
+				r = *src++;
+				g = *src++;
+				b = *src++;
+				*dst++ = (uint8_t)(0.299*r + 0.587*g + 0.144*b);
+			}
+		dst += bpl - (*width * 3);
 	}
 
 	free(tmpbuffer);
 	return 0;
 }
+
 
 #ifdef TEST_PPM
 int main(int argc, char* argv[]) {
