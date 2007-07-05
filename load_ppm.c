@@ -1,5 +1,5 @@
 /*
-	$Date: 2007-07-04 22:13:02 $, $Revision: 1.7 $
+	$Date: 2007-07-05 22:45:30 $, $Revision: 1.8 $
 	
 	Simple PPM files (24bpp) loader/identify [implementation].
 	
@@ -267,6 +267,7 @@ int ppm_load_gray(FILE* file, int* width, int* height, int* maxval, uint8_t** da
 	uint8_t* src;
 	uint8_t* dst;
 	uint16_t r, g, b;
+	double   gray;
 
 	result = ppm_identify(file, width, height, maxval);
 	if (result < 0)
@@ -315,7 +316,11 @@ int ppm_load_gray(FILE* file, int* width, int* height, int* maxval, uint8_t** da
 				r = *src++;
 				g = *src++;
 				b = *src++;
-				*dst++ = (uint8_t)(0.299*r + 0.587*g + 0.144*b);
+				gray = 0.299*r + 0.587*g + 0.114*b;
+				if (gray > 255.0) 
+					*dst++ = 0xff;
+				else
+					*dst++ = (uint8_t)gray;
 			}
 		dst += bpl - *width;
 	}
