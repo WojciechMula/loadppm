@@ -1,7 +1,7 @@
 #ifndef __LOAD_PPM_H_INCLUDED__
 #define __LOAD_PPM_H_INCLUDED__
 /*
-	$Date: 2007-07-04 22:13:40 $, $Revision: 1.2 $
+	$Date: 2008-06-05 22:17:00 $, $Revision: 1.3 $
 	
 	Simple PPM files (24bpp) loader/identify [header].
 	
@@ -12,6 +12,7 @@
 	License: public domain
 */
 
+#include <stdio.h>
 
 
 /*
@@ -46,6 +47,18 @@ int ppm_load(
 	int* height,
 	int* maxval,
 	uint8_t** data
+);
+
+// load PPM and convert to 32bpp image, with desired alpha per pixel
+int ppm_load_32bpp_alpha(
+	FILE* file, 
+	int* width, 
+	int* height, 
+	int* maxval, 
+	uint8_t** data, 
+	int unit, // units: greater then 0 -- in bytes
+	          //        less then 0    -- in pixels
+	uint8_t alpha
 );
 
 // load PPM and convert to 32bpp image
