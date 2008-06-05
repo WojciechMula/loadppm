@@ -1,5 +1,5 @@
 /*
-	$Date: 2007-07-05 22:45:30 $, $Revision: 1.8 $
+	$Date: 2008-06-05 22:16:47 $, $Revision: 1.9 $
 	
 	Simple PPM files (24bpp) loader/identify [implementation].
 	
@@ -69,6 +69,17 @@ static char __ppm_skip_comment(FILE* f) {
 	else
 		return 1;
 }
+
+
+#ifdef PPM_ALIGN_MALLOC
+static void* ppm_malloc(size_t size) {
+	void* ptr;
+	posix_memalign(&ptr, PPM_ALIGN_MALLOC, size);
+	return ptr;
+}
+
+#define malloc ppm_malloc
+#endif
 
 
 int ppm_identify(FILE* f, int* width, int* height, int* maxval) {
@@ -145,7 +156,7 @@ int ppm_load(FILE* file, int* width, int* height, int* maxval, uint8_t** data) {
 }
 
 
-int ppm_load_32bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit) {
+int ppm_load_32bpp_alpha(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit, uint8_t alpha) {
 	int size, result, y, x, bpl;
 	uint8_t* tmpbuffer;
 	uint8_t* dst;
@@ -194,13 +205,18 @@ int ppm_load_32bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** d
 			*dst++ = B;
 			*dst++ = G;
 			*dst++ = R;
-			*dst++ = 0x00;   // pad
+			*dst++ = alpha;
 		}
 		dst += bpl - (*width * 4);
 	}
 
 	free(tmpbuffer);
 	return 0;
+}
+
+
+int ppm_load_32bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** data, int unit) {
+	return ppm_load_32bpp_alpha(file, width, height, maxval, data, unit, 0x00);
 }
 
 
