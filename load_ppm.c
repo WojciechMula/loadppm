@@ -1,5 +1,5 @@
 /*
-	$Date: 2008-06-05 22:16:47 $, $Revision: 1.9 $
+	$Date: 2008-06-06 12:42:52 $, $Revision: 1.10 $
 	
 	Simple PPM files (24bpp) loader/identify [implementation].
 	
@@ -16,6 +16,12 @@
 #include <string.h>
 
 #include "load_ppm.h"
+
+#ifdef PPM_ALIGN_MALLOC
+#	if !((PPM_ALIGN_MALLOC & (PPM_ALIGN_MALLOC - 1)) == 0 && PPM_ALIGN_MALLOC)
+#		error "PPM_ALIGN_MALLOC have to be power of two"
+#	endif
+#endif
 
 static char __ppm_read_int(FILE* f, int* v) {
 	int value = 0;	// readed value
@@ -74,8 +80,10 @@ static char __ppm_skip_comment(FILE* f) {
 #ifdef PPM_ALIGN_MALLOC
 static void* ppm_malloc(size_t size) {
 	void* ptr;
-	posix_memalign(&ptr, PPM_ALIGN_MALLOC, size);
-	return ptr;
+	if (posix_memalign(&ptr, PPM_ALIGN_MALLOC, size))
+		return NULL;
+	else
+		return ptr;
 }
 
 #define malloc ppm_malloc
