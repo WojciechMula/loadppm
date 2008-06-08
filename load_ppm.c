@@ -1,5 +1,5 @@
 /*
-	$Date: 2008-06-06 12:42:52 $, $Revision: 1.10 $
+	$Date: 2008-06-08 12:48:43 $, $Revision: 1.11 $
 	
 	Simple PPM files (24bpp) loader/identify [implementation].
 	
@@ -188,6 +188,8 @@ int ppm_load_32bpp_alpha(FILE* file, int* width, int* height, int* maxval, uint8
 	*data = (uint8_t*)malloc(*height * bpl);
 	if (!*data)
 		return -7;
+	else
+		memset(*data, 0, *height * bpl);
 	
 	if (*maxval < 256)
 		size = *width * 3;
@@ -252,6 +254,8 @@ int ppm_load_16bpp(FILE* file, int* width, int* height, int* maxval, uint8_t** d
 	*data = (uint8_t*)malloc(*height * bpl);
 	if (!*data)
 		return -7;
+	else
+		memset(*data, 0, *height * bpl);
 	
 	if (*maxval < 256)
 		size = *width * 3;
@@ -310,6 +314,8 @@ int ppm_load_gray(FILE* file, int* width, int* height, int* maxval, uint8_t** da
 	*data = (uint8_t*)malloc(*height * bpl);
 	if (!*data)
 		return -7;
+	else
+		memset(*data, 0, *height * bpl);
 	
 	if (*maxval < 256)
 		size = *width * 3;
