@@ -1,7 +1,7 @@
 #ifndef __LOAD_PPM_H_INCLUDED__
 #define __LOAD_PPM_H_INCLUDED__
 /*
-	$Date: 2008-06-05 22:17:00 $, $Revision: 1.3 $
+	$Date: 2008-06-08 12:49:10 $, $Revision: 1.4 $
 	
 	Simple PPM files (24bpp) loader/identify [header].
 	
@@ -40,6 +40,13 @@ int ppm_identify(
 	int* maxval
 );
 
+
+// returns bytes in scanline for given width and bpp
+// unit > 0 -- bytes
+// unit < 0 -- pixels
+int ppm_bytes_per_line(int img_width, int bytes_per_pixel, int uint);
+
+
 // load original 24bpp image
 int ppm_load(
 	FILE* file,
@@ -61,7 +68,7 @@ int ppm_load_32bpp_alpha(
 	uint8_t alpha
 );
 
-// load PPM and convert to 32bpp image
+// load PPM and convert to 32bpp image (alpha is zero)
 int ppm_load_32bpp(
 	FILE* file, 
 	int* width, 
