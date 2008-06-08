@@ -1,13 +1,13 @@
 #ifndef __LOAD_PPM_H_INCLUDED__
 #define __LOAD_PPM_H_INCLUDED__
 /*
-	$Date: 2008-06-08 12:49:10 $, $Revision: 1.4 $
+	$Date: 2008-06-08 23:00:14 $, $Revision: 1.5 $
 	
 	Simple PPM files (24bpp) loader/identify [header].
 	
 	Author: Wojciech Mu³a
 	e-mail: wojciech_mula@poczta.onet.pl
-	www:    http://www.mula.w.pl
+	www:    http://www.republika.pl/wmula/
 	
 	License: public domain
 */

@@ -1,11 +1,11 @@
 /*
-	$Date: 2008-06-08 12:48:43 $, $Revision: 1.11 $
+	$Date: 2008-06-08 23:00:14 $, $Revision: 1.12 $
 	
 	Simple PPM files (24bpp) loader/identify [implementation].
 	
 	Author: Wojciech Mu³a
 	e-mail: wojciech_mula@poczta.onet.pl
-	www:    http://www.mula.w.pl
+	www:    http://www.republika.pl/wmula/
 	
 	License: public domain
 */
