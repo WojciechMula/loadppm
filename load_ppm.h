@@ -1,7 +1,7 @@
 #ifndef __LOAD_PPM_H_INCLUDED__
 #define __LOAD_PPM_H_INCLUDED__
 /*
-	$Date: 2008-06-08 23:00:14 $, $Revision: 1.5 $
+	$Date: 2008-06-21 22:18:18 $, $Revision: 1.6 $
 	
 	Simple PPM files (24bpp) loader/identify [header].
 	
@@ -108,7 +108,7 @@ int ppm_load_gray(
 
 
 #define PPM_maxerror 11
-static char* PPM_errormsg[PPM_maxerror] = {
+static char* PPM_errormsg[PPM_maxerror] __attribute__((unused)) = {
 	/* 0 */ "no error",
 	/* 1 */ "wrong signature",
 	/* 2 */ "image width absent",
