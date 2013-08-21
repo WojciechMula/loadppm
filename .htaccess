@@ -1,5 +1,0 @@
-HeaderName	header.html
-IndexIgnore	header.html
-IndexOptions	DescriptionWidth=*
-AddDescription	"implementation"	load_ppm.c
-AddDescription	"header"		load_ppm.h
