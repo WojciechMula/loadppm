@@ -10,18 +10,19 @@
 	License: public domain
 */
 
+#ifdef PPM_ALIGN_MALLOC
+#	if !((PPM_ALIGN_MALLOC & (PPM_ALIGN_MALLOC - 1)) == 0 && PPM_ALIGN_MALLOC)
+#		error "PPM_ALIGN_MALLOC have to be power of two"
+#	endif
+#   define _XOPEN_SOURCE 600
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "load_ppm.h"
-
-#ifdef PPM_ALIGN_MALLOC
-#	if !((PPM_ALIGN_MALLOC & (PPM_ALIGN_MALLOC - 1)) == 0 && PPM_ALIGN_MALLOC)
-#		error "PPM_ALIGN_MALLOC have to be power of two"
-#	endif
-#endif
 
 static char __ppm_read_int(FILE* f, int* v) {
 	int value = 0;	// readed value
